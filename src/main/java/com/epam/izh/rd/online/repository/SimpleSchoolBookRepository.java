@@ -2,8 +2,8 @@ package com.epam.izh.rd.online.repository;
 
 import com.epam.izh.rd.online.entity.SchoolBook;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.time.LocalDate;
+import java.util.*;
 
 public class SimpleSchoolBookRepository implements BookRepository<SchoolBook> {
     private SchoolBook[] schoolBooks;
@@ -19,38 +19,47 @@ public class SimpleSchoolBookRepository implements BookRepository<SchoolBook> {
         if (book == null) {
             throw new NullPointerException();
         }
-        resize(schoolBooks.length + 1);
+        schoolBooks = resize(schoolBooks.length + 1, schoolBooks);
         schoolBooks[i++] = book;
         return true;
     }
 
     @Override
     public SchoolBook[] findByName(String name) {
-        SchoolBook[] temp = new SchoolBook[schoolBooks.length];
-        int index;
-        int counter = 0;
-        while (true) {
-            index = findIndexByName(name);
-            if (index == -1) {
-                break;
-            }
-            temp[counter++] = schoolBooks[index];
+        if (name == null) {
+            throw new NullPointerException();
         }
-        return temp;
+        SchoolBook[] books = new SchoolBook[0];
+        int count = 0;
+
+        for (int i = 0; i < schoolBooks.length; i++) {
+            if (schoolBooks[i].getAuthorName().equals(name)) {
+                books = resize(books.length + 1, books);
+                books[count++] = schoolBooks[i];
+            }
+        }
+        return books;
     }
 
     @Override
     public boolean removeByName(String name) {
-        int index;
-        while (true) {
-            index = findIndexByName(name);
-            if (index == -1) {
-                break;
-            }
-            schoolBooks[index] = null;
+        if (name == null) {
+            return false;
         }
-        removeNull(schoolBooks);
-        return true;
+        boolean removed = false;
+        int removeCount = 0;
+        for (int i = 0; i < schoolBooks.length; i++) {
+            if (schoolBooks[i].getAuthorName().equals(name)) {
+                schoolBooks[i] = null;
+                removed = true;
+                removeCount++;
+                this.i--;
+            }
+        }
+        if (removed) {
+            schoolBooks = removeNull(schoolBooks, schoolBooks.length-removeCount);
+        }
+        return removed;
     }
 
     @Override
@@ -58,27 +67,35 @@ public class SimpleSchoolBookRepository implements BookRepository<SchoolBook> {
         return schoolBooks.length;
     }
 
-    private void resize(int capacity) {
-        if (capacity <= schoolBooks.length) {
-            throw new IllegalArgumentException();
-        }
-        schoolBooks = Arrays.copyOf(schoolBooks, capacity);
+    private SchoolBook[] resize(int capacity, SchoolBook[] arr) {
+        return Arrays.copyOf(arr, capacity);
     }
 
-    private int findIndexByName(String name) {
-        for (int i = 0; i < schoolBooks.length; i++) {
-            if (schoolBooks[i].getAuthorName().equals(name)) {
-                return i;
+    private SchoolBook[] removeNull(SchoolBook[] array, int capacity) {
+        SchoolBook[] temp = new SchoolBook[capacity];
+        for (int i = 0, j = 0; i < array.length; i++) {
+            if (array[i] != null) {
+                temp[j++] = array[i];
             }
         }
-        return -1;
-    }
-
-    public static SchoolBook[] removeNull(SchoolBook[] array) {
-        return (SchoolBook[]) Arrays.stream(array).filter(Objects::nonNull).toArray();
+        return temp;
     }
 
     public static void main(String[] args) {
+        SimpleSchoolBookRepository repository = new SimpleSchoolBookRepository();
+        repository.save(new SchoolBook(1000, "Odyssey", "Homer", null, LocalDate.of(-800, 2,3)));
+        repository.save(new SchoolBook(600, "The Witcher", "Andjey", "Sapkovskie", LocalDate.of(-800, 2,3)));
+        repository.save(new SchoolBook(1000, "Harry Potter", "Johan", "Rowling", LocalDate.of(-800, 2,3)));
+        repository.save(new SchoolBook(1000, "Math 9's grade", "Johan", "Ister", LocalDate.of(-800, 2,3)));
+        repository.save(new SchoolBook(1000, "Physics", "Homer", null, LocalDate.of(-800, 2,3)));
 
+        SchoolBook[] books = repository.findByName("Johan");
+
+        for (int i = 0; i < books.length; i++) {
+            System.out.println(books[i]);
+        }
+        repository.removeByName("Johan");
+        repository.removeByName("Oleksandr");
+        repository.save(new SchoolBook(100, "Fairy Tales", "People", null, LocalDate.of(-800, 2,3)));
     }
 }
