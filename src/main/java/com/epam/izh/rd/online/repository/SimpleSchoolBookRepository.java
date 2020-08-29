@@ -29,11 +29,14 @@ public class SimpleSchoolBookRepository implements BookRepository<SchoolBook> {
         if (name == null) {
             throw new NullPointerException();
         }
+        if (isEmpty()) {
+            return new SchoolBook[0];
+        }
         SchoolBook[] books = new SchoolBook[0];
         int count = 0;
 
         for (int i = 0; i < schoolBooks.length; i++) {
-            if (schoolBooks[i].getAuthorName().equals(name)) {
+            if (schoolBooks[i].getName().equals(name)) {
                 books = resize(books.length + 1, books);
                 books[count++] = schoolBooks[i];
             }
@@ -46,10 +49,13 @@ public class SimpleSchoolBookRepository implements BookRepository<SchoolBook> {
         if (name == null) {
             return false;
         }
+        if (isEmpty()) {
+            return false;
+        }
         boolean removed = false;
         int removeCount = 0;
         for (int i = 0; i < schoolBooks.length; i++) {
-            if (schoolBooks[i].getAuthorName().equals(name)) {
+            if (schoolBooks[i].getName().equals(name)) {
                 schoolBooks[i] = null;
                 removed = true;
                 removeCount++;
@@ -79,6 +85,10 @@ public class SimpleSchoolBookRepository implements BookRepository<SchoolBook> {
             }
         }
         return temp;
+    }
+
+    private boolean isEmpty() {
+        return schoolBooks.length == 0;
     }
 
     public static void main(String[] args) {
